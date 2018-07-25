@@ -1,8 +1,9 @@
-'use strict';
+// @ts-check
 
 function uniq(arr) {
-  var u = {}, a = [];
-  for (var i = 0, l = arr.length; i < l; ++i) {
+  const u = {};
+  const a = [];
+  for (let i = 0, l = arr.length; i < l; ++i) {
     if (Object.prototype.hasOwnProperty.call(u, arr[i])) {
       continue;
     }
@@ -13,7 +14,12 @@ function uniq(arr) {
 }
 
 function _add(trie, array) {
-  var i, j, node, prevNode, values, goRecursive;
+  let i;
+  let j;
+  let node;
+  let prevNode;
+  let values;
+  let goRecursive;
   node = trie;
   goRecursive = false;
   // go through permission string array
@@ -49,7 +55,8 @@ function _add(trie, array) {
 }
 
 function _check(trie, array) {
-  var i, node;
+  let i;
+  let node;
   node = trie;
   // add implicit star at the end
   if (array.length < 1 || array[array.length - 1] !== '*') {
@@ -80,7 +87,8 @@ function _check(trie, array) {
 }
 
 function _permissions(trie, array) {
-  var current, results;
+  let current;
+  let results;
   if (!trie || !array ||
     typeof trie !== 'object' || !Array.isArray(array) ||
     Object.keys(trie).length < 1 || array.length < 1) {
@@ -99,14 +107,12 @@ function _permissions(trie, array) {
     results = Object.keys(trie);
     // if something is coming after the ?,
     if (array.length > 0) {
-      var anyObj = {};
-      results.forEach(function (node) {
+      const anyObj = {};
+      results.forEach(node => {
         anyObj[node] = _expandTrie(trie[node], array);
       });
 
-      return results.filter(function (node) {
-        return anyObj[node].length > 0;
-      });
+      return results.filter(node => anyObj[node].length > 0);
     }
     return results;
   }
@@ -117,9 +123,9 @@ function _permissions(trie, array) {
       results = results.concat(_permissions(trie[node], [].concat(array)));
     });
     // remove duplicates
-    var u = uniq(results);
+    const u = uniq(results);
     // … and * from results
-    for (var i = u.length - 1; i >= 0; i--) {
+    for (let i = u.length - 1; i >= 0; i--) {
       if (u[i] === '*') {
         u.splice(i, 1);
       }
@@ -139,30 +145,29 @@ function _permissions(trie, array) {
 }
 
 function _expand(permission) {
-  var results = [];
-  var parts = permission.split(':');
-  var i, alternatives;
+  let results = [];
+  const parts = permission.split(':');
+  let i;
+  let alternatives;
   for (i = 0; i < parts.length; i++) {
     alternatives = parts[i].split(',');
     if (results.length === 0) {
       results = alternatives;
     } else {
       alternatives = alternatives.map(function (alternative) {
-        return results.map(function (perm) {
-          return perm + ':' + alternative;
-        }, this);
+        return results.map(perm => `${perm}:${alternative}`, this);
       }, this);
-      results = [].concat.apply([], uniq(alternatives));
+      results = [].concat(...uniq(alternatives));
     }
   }
   return results;
 }
 
 function _expandTrie(trie, array) {
-  var a = [].concat(array);
+  const a = [].concat(array);
 
-  return Object.keys(trie).map(function (node) {
-    var recurse = false;
+  return Object.keys(trie).map(node => {
+    let recurse = false;
     if (node === '*') {
       if (array.length <= 1 || Object.keys(trie[node]).length === 0) {
         return [node];
@@ -179,13 +184,9 @@ function _expandTrie(trie, array) {
     if (!recurse) {
       return [];
     }
-    var child = _expandTrie(trie[node], array.slice(1));
-    return child.map(function (inner) {
-      return node + ':' + inner;
-    });
-  }).reduce(function (a, b) {
-    return a.concat(b);
-  }, []);
+    const child = _expandTrie(trie[node], array.slice(1));
+    return child.map(inner => `${node}:${inner}`);
+  }).reduce((a, b) => a.concat(b), []);
 }
 
 /**
@@ -193,90 +194,93 @@ function _expandTrie(trie, array) {
  * @returns {ShiroTrie}
  * @constructor
  */
-var ShiroTrie = function () {
-  this.data = {};
-  return this;
-};
+export class ShiroTrie {
+  data = {};
+  constructor() {
+    this.data = {};
+    return this;
+  }
 
-/**
- * removes all data from the Trie (clean startup)
- * @returns {ShiroTrie}
- */
-ShiroTrie.prototype.reset = function () {
-  this.data = {};
-  return this;
-};
+  /**
+   * removes all data from the Trie (clean startup)
+   * @returns {ShiroTrie}
+   */
+  reset() {
+    this.data = {};
+    return this;
+  }
 
-/**
- * Add one or more permissions to the Trie
- * @param {...string|...Array} args - Any number of permission string(s) or String Array(s)
- * @returns {ShiroTrie}
- */
-ShiroTrie.prototype.add = function () {
-  var args = [].concat.apply([], arguments);
-  var arg;
-  for (arg in args) {
-    if (args.hasOwnProperty(arg) && typeof(args[arg]) === 'string') {
-      var array = args[arg].split(':');
-      // remove star leaf, because it is added in _add with empty subtree
-      if (array[array.length - 1] === '*') { 
-        array.splice(array.length-1, 1);
+  /**
+   * Add one or more permissions to the Trie
+   * @param {...string|Array} args - Any number of permission string(s) or String Array(s)
+   * @returns {ShiroTrie}
+   */
+  add() {
+    const args = [].concat(...arguments);
+    let arg;
+    for (arg in args) {
+      if (args.hasOwnProperty(arg) && typeof(args[arg]) === 'string') {
+        const array = args[arg].split(':');
+        // remove star leaf, because it is added in _add with empty subtree
+        if (array[array.length - 1] === '*') { 
+          array.splice(array.length-1, 1);
+        }
+        this.data = _add(this.data, array);
       }
-      this.data = _add(this.data, array);
     }
+    return this;
   }
-  return this;
-};
 
-/**
- * check if a specific permission is allowed in the current Trie.
- * @param string The string to check. Should not contain * – always check for the most explicit
- *   permission
- * @returns {*}
- */
-ShiroTrie.prototype.check = function (string) {
-  if (typeof string !== 'string') {
-    return false;
+  /**
+   * check if a specific permission is allowed in the current Trie.
+   * @param string The string to check. Should not contain * – always check for the most explicit
+   *   permission
+   * @returns {Boolean} True if the permission is allowed.
+   */
+  check(string) {
+      return false;
+    }
+    if (string.includes(',')) { // expand string to single comma-less permissions...
+      return _expand(string).map(function (permission) {
+        return _check(this.data, permission.split(':'));
+      }, this).every(Boolean); // ... and make sure they are all allowed
+    }
+    return _check(this.data, string.split(':'));
   }
-  if (string.indexOf(',') !== -1) { // expand string to single comma-less permissions...
-    return _expand(string).map(function (permission) {
-      return _check(this.data, permission.split(':'));
-    }, this).every(Boolean); // ... and make sure they are all allowed
+
+  /**
+   * return the Trie data
+   * @returns {{}|*}
+   */
+  get() {
+    return this.data;
   }
-  return _check(this.data, string.split(':'));
-};
 
-/**
- * return the Trie data
- * @returns {{}|*}
- */
-ShiroTrie.prototype.get = function () {
-  return this.data;
-};
-
-/**
- * check what permissions a certain Trie part contains
- * @param string String to check – should contain exactly one ?. Also possible is usage of the any
- *   ($) parameter. See docs for details.
- * @returns {*}
- */
-ShiroTrie.prototype.permissions = function (string) {
-  if (typeof string !== 'string') {
-    return [];
+  /**
+   * check what permissions a certain Trie part contains
+   * @param string String to check – should contain exactly one ?. Also possible is usage of the any
+   *   ($) parameter. See docs for details.
+   * @returns {*}
+   */
+  permissions(string) {
+    if (typeof string !== 'string') {
+      return [];
+    }
+    return _permissions(this.data, string.split(':'));
   }
-  return _permissions(this.data, string.split(':'));
-};
+}
 
-module.exports = {
+export default {
   /**
    * @deprecated since 0.4.0. Use newTrie() instead.
    * @returns {ShiroTrie}
    */
-  new: function () {
+  new() {
     return new ShiroTrie();
   },
-  newTrie: function () {
+  newTrie() {
     return new ShiroTrie();
   },
-  _expand: _expand,
+  ShiroTrie,
+  _expand,
 };
