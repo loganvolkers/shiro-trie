@@ -1,6 +1,6 @@
 {
   "name": "shiro-trie",
-  "main": "dist/shiro-trie.js",
+  "main": "dist/browser/index.js",
   "version": "0.4.1",
   "homepage": "https://github.com/entrecode/shiro-trie",
   "authors": [

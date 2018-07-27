@@ -1,5 +1,11 @@
 ## Node.js
 
+# Compiled output
+dist
+
+# Parcel cache
+.cache 
+
 # Logs
 logs
 *.log

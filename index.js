@@ -195,7 +195,6 @@ function _expandTrie(trie, array) {
  * @constructor
  */
 export class ShiroTrie {
-  data = {};
   constructor() {
     this.data = {};
     return this;
@@ -238,6 +237,7 @@ export class ShiroTrie {
    * @returns {Boolean} True if the permission is allowed.
    */
   check(string) {
+    if (typeof string !== 'string') {
       return false;
     }
     if (string.includes(',')) { // expand string to single comma-less permissions...

@@ -5,7 +5,7 @@ if (isNode) {
   var chai = require('chai');
   var expect = chai.expect;
   var assert = chai.assert;
-  var shiroTrie = require('../');
+  var shiroTrie = require('../').default;
 }
 
 var trie;
